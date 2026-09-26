@@ -2127,6 +2127,7 @@ console.log(e);
 			html += '<label class="fm_settings_check"><input type="checkbox" name="recycling"' + (s.recycling ? ' checked' : '') + '> ' + EscapeHTML($this.Translate('Enable recycling bin')) + '</label>';
 			html += '<label class="fm_settings_check"><input type="checkbox" name="tabbed"' + (s.tabbed ? ' checked' : '') + '> ' + EscapeHTML($this.Translate('Tabbed editor')) + '</label>';
 			html += '<label class="fm_settings_check"><input type="checkbox" name="hide_manager"' + (s.hide_manager ? ' checked' : '') + '> ' + EscapeHTML($this.Translate('Hide Cope Manager folder in File Explorer')) + '</label>';
+			html += '<small>' + EscapeHTML($this.Translate('Hides the whole install folder (e.g. cope-manager / manager), not only the copecute subfolder.')) + '</small>';
 			html += '<div class="fm_modal_msg"></div>';
 			html += '<div class="fm_modal_actions"><button type="submit" class="fm_modal_btn_primary">' + EscapeHTML($this.Translate('Save')) + '</button><button type="button" class="fm_modal_btn_cancel">' + EscapeHTML($this.Translate('Cancel')) + '</button></div>';
 			html += '</form>';

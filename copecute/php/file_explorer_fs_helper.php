@@ -40,27 +40,50 @@
 			return $path;
 		}
 
-		// Hide/protect the Cope Manager app directory when hide_manager is enabled
-		// and the app lives inside the file storage root.
+		// Resolve which folder to hide: prefer the install/package folder (parent of copecute),
+		// whatever the user named it (cope-manager, manager, …); fall back to copecute itself.
+		public static function ResolveManagerHideRoot($options = null)
+		{
+			if ($options === null)  $options = self::$protectoptions;
+			if (!is_array($options))  return "";
+
+			$basedir = isset($options["base_dir"]) ? self::NormalizePath($options["base_dir"]) : "";
+			if ($basedir === "")  return "";
+
+			$rb = @realpath($basedir);
+			if ($rb)  $basedir = self::NormalizePath($rb);
+
+			$candidates = array();
+			if (!empty($options["manager_package_path"]))  $candidates[] = self::NormalizePath($options["manager_package_path"]);
+			if (!empty($options["manager_path"]))  $candidates[] = self::NormalizePath($options["manager_path"]);
+
+			foreach ($candidates as $candidate)
+			{
+				if ($candidate === "")  continue;
+				$rc = @realpath($candidate);
+				if ($rc)  $candidate = self::NormalizePath($rc);
+
+				// Must be strictly inside the storage root (not the storage root itself).
+				if ($candidate === $basedir)  continue;
+				if (strpos($candidate . "/", $basedir . "/") === 0)  return $candidate;
+			}
+
+			return "";
+		}
+
+		// Hide/protect the Cope Manager install folder when hide_manager is enabled
+		// and that folder lives inside the file storage root.
 		public static function IsProtectedManagerPath($path, $options = null)
 		{
 			if ($options === null)  $options = self::$protectoptions;
 			if (!is_array($options) || empty($options["hide_manager"]))  return false;
 
-			$manager = isset($options["manager_path"]) ? self::NormalizePath($options["manager_path"]) : "";
-			$basedir = isset($options["base_dir"]) ? self::NormalizePath($options["base_dir"]) : "";
+			$manager = self::ResolveManagerHideRoot($options);
 			$path = self::NormalizePath($path);
-			if ($manager === "" || $basedir === "" || $path === "")  return false;
+			if ($manager === "" || $path === "")  return false;
 
-			$rm = @realpath($manager);
-			$rb = @realpath($basedir);
 			$rp = @realpath($path);
-			if ($rm)  $manager = self::NormalizePath($rm);
-			if ($rb)  $basedir = self::NormalizePath($rb);
 			if ($rp)  $path = self::NormalizePath($rp);
-
-			// Only apply when the app dir is strictly inside the storage root (not the same path).
-			if ($manager === $basedir || strpos($manager . "/", $basedir . "/") !== 0)  return false;
 
 			return ($path === $manager || strpos($path . "/", $manager . "/") === 0);
 		}
@@ -1881,16 +1904,21 @@
 
 						if ($file !== false)
 						{
-							if (is_dir($srcpath . "/" . $file))
+							$full = $srcpath . "/" . $file;
+
+							// Never recycle the storage root or the protected manager install folder.
+							if ($full === $options["base_dir"] || self::IsProtectedManagerPath($full, $options))  continue;
+
+							if (is_dir($full))
 							{
-								@rename($srcpath . "/" . $file, $destpath . "/" . $file);
+								@rename($full, $destpath . "/" . $file);
 							}
-							else if (is_file($srcpath . "/" . $file))
+							else if (is_file($full))
 							{
 								// Check the file extension.
 								if (!self::HasAllowedExt($allowedexts, $options["allow_empty_ext"], $file))  continue;
 
-								@rename($srcpath . "/" . $file, $destpath . "/" . $file);
+								@rename($full, $destpath . "/" . $file);
 							}
 						}
 					}
@@ -2317,10 +2345,19 @@
 						if ($id !== false)  $pathstack[] = $id;
 					}
 
+					// Never remove the folder the user is browsing, or the storage root itself.
+					$deletelimit = $srcpath;
+
 					while (count($pathstack))
 					{
 						$path = array_shift($pathstack);
 						$srcpath2 = $srcpath . "/" . $path;
+
+						// Skip storage root, browse folder, and protected manager install folder.
+						if ($srcpath2 === $options["base_dir"] || $srcpath2 === $deletelimit || self::IsProtectedManagerPath($srcpath2, $options))  continue;
+
+						// Stay inside base_dir.
+						if (strncmp($srcpath2 . "/", $options["base_dir"] . "/", strlen($options["base_dir"]) + 1) !== 0)  continue;
 
 						// Skip if recycle bin detected.
 						if (self::IsRecycleBin($srcpath2, $options))  continue;
@@ -2342,8 +2379,15 @@
 
 								closedir($dir);
 
-								while (@rmdir($srcpath2))
+								// Remove emptied directories upward, but never the browse folder or storage root.
+								while (is_dir($srcpath2))
 								{
+									if ($srcpath2 === $deletelimit || $srcpath2 === $options["base_dir"])  break;
+									if (strncmp($srcpath2 . "/", $options["base_dir"] . "/", strlen($options["base_dir"]) + 1) !== 0)  break;
+									if (self::IsProtectedManagerPath($srcpath2, $options))  break;
+
+									if (!@rmdir($srcpath2))  break;
+
 									$pos = strrpos($srcpath2, "/");
 									if ($pos === false)  break;
 
@@ -2353,7 +2397,7 @@
 						}
 						else if (is_file($srcpath2))
 						{
-							if (self::HasAllowedExt($allowedexts, $options["allow_empty_ext"], $path))  @unlink($srcpath2);
+							if (self::HasAllowedExt($allowedexts, $options["allow_empty_ext"], basename($path)))  @unlink($srcpath2);
 						}
 
 						$ts2 = time();
@@ -2394,6 +2438,7 @@
 			if (!isset($options["dot_folders"]))  $options["dot_folders"] = false;
 			if (!isset($options["hide_manager"]))  $options["hide_manager"] = false;
 			if (!empty($options["manager_path"]))  $options["manager_path"] = self::NormalizePath($options["manager_path"]);
+			if (!empty($options["manager_package_path"]))  $options["manager_package_path"] = self::NormalizePath($options["manager_package_path"]);
 
 			self::SetProtectOptions($options);
 

@@ -333,7 +333,8 @@
 		"compress" => true,
 		"chmod" => true,
 		"hide_manager" => !empty($config["hide_manager"]),
-		"manager_path" => COPE_DIR
+		"manager_path" => COPE_DIR,
+		"manager_package_path" => COPE_WEB_ROOT
 	);
 
 	if ($config["projects_url"] != "")  $options["base_url"] = $config["projects_url"];

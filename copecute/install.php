@@ -379,7 +379,7 @@ setInterval(function() {
 					"name" => "hide_manager",
 					"options" => array("Yes" => "Yes", "No" => "No"),
 					"default" => $_SESSION["fm_admin_install"]["hide_manager"],
-					"desc" => "When file storage includes this app directory, hide it in File Explorer so users do not open or edit Cope Manager by mistake. Recommended: Yes."
+					"desc" => "When file storage includes this app, hide the whole install folder (whatever it is named — e.g. cope-manager, manager) in File Explorer so users do not open or edit it by mistake. Recommended: Yes."
 				),
 				array(
 					"title" => "* Password",
