@@ -1,0 +1,4 @@
+html, body { padding: 0; margin: 0; height: 100%; overflow: hidden; }
+body { font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Verdana, Arial, sans-serif; position: relative; color: #1A2332; font-size: 1.0em; }
+
+#filemanager { height: 100%; }

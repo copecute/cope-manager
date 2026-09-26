@@ -1,0 +1,4 @@
+# Protect sensitive Cope Manager files
+<FilesMatch "(?i)^(config\.php|config-bak\.php|bootstrap\.php|app\.php|security\.php|index_hook\.php)$">
+	Require all denied
+</FilesMatch>

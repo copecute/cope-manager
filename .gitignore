@@ -1,4 +1,5 @@
 artwork/animation/*
 projects/*
-thumbs/*
-config.php
+copecute/thumb/*
+copecute/config.php
+copecute/data/locks/*

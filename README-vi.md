@@ -3,7 +3,7 @@
 [![English](https://img.shields.io/badge/lang-English-0A66C2?style=for-the-badge)](README.md)
 [![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng%20Việt-DA251D?style=for-the-badge)](README-vi.md)
 
-Web-based file manager và code editor — viết lại / nâng cấp trên nền [php-filemanager](https://github.com/cubiclesoft/php-filemanager) của [CubicleSoft](https://github.com/cubiclesoft).
+Web-based file manager và code editor
 
 ![Cope Manager — File Explorer](https://i.imgur.com/RlwVp8i.png)
 
@@ -23,12 +23,14 @@ Phù hợp để quản lý file trên hosting PHP, chỉnh sửa mã nguồn tr
 - **Recycle Bin** — xóa mềm (bật/tắt khi cài đặt).
 - **Phân quyền đuôi file** — chế độ All / Allow (whitelist) / Exclude (blacklist).
 - **Mobile-friendly** — dùng được trên điện thoại.
-- **Cài đặt nhanh** — wizard `install.php` trên mọi host PHP.
+- **MySQL Manager** — thêm máy chủ, kết nối, duyệt database/bảng, chạy SQL (cơ bản như phpMyAdmin).
+- **Cài đặt nhanh** — wizard `copecute/install.php` trên mọi host PHP.
 - **Tích hợp login** — hook `index_hook.php` để gắn hệ thống đăng nhập riêng.
 
 ## Yêu cầu
 
 - PHP 5.6+ (khuyến nghị PHP 7+ / 8+)
+- Extension PHP **mysqli** (cho MySQL Manager)
 - Thư mục lưu file ghi được bởi web server
 
 ## Cài đặt
@@ -39,18 +41,29 @@ Phù hợp để quản lý file trên hosting PHP, chỉnh sửa mã nguồn tr
 git clone https://github.com/copecute/cope-manager.git
 ```
 
-2. Mở `install.php` trên trình duyệt và làm theo wizard.
+2. Mở `copecute/install.php` trên trình duyệt và làm theo wizard.
 3. Chỉ định **File storage path** (thư mục chứa file cần quản lý) và tùy chọn **File storage base URL**.
-4. Đặt mật khẩu đăng nhập (hoặc để trống và dùng `index_hook.php` với hệ thống login riêng).
-5. Sau khi cài xong, bảo vệ thư mục cài đặt (không để công khai nếu không cần), rồi mở trang chính để dùng.
+4. Đặt mật khẩu đăng nhập (bắt buộc, tối thiểu 8 ký tự).
+5. Sau khi cài xong, mở `index.php` ở thư mục gốc.
 
 Nếu không cần editor / preview dạng tab, chọn tắt **Use Tabbed Editor/Viewer** khi cài — File Explorer sẽ chiếm toàn bộ giao diện.
 
-Cấu hình nằm trong `config.php` (file này không commit; xem `.gitignore`).
+Cấu trúc:
+
+```
+index.php                 # cổng vào
+copecute/
+  install.php             # wizard cài đặt
+  config.php              # tạo khi cài (đã bảo vệ)
+  app.php / bootstrap.php / security.php
+  js/  css/  php/  img/  thumb/  data/
+```
+
+Cấu hình nằm trong `copecute/config.php` (file này không commit; xem `.gitignore`).
 
 ## Tích hợp
 
-Tạo `index_hook.php` để kiểm tra session / quyền người dùng và điều chỉnh `$config` nếu cần.
+Tạo `copecute/index_hook.php` để kiểm tra session / quyền người dùng và điều chỉnh `$config` nếu cần.
 
 Hai hook tùy chọn:
 

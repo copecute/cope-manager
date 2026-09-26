@@ -3,7 +3,7 @@
 [![English](https://img.shields.io/badge/lang-English-0A66C2?style=for-the-badge)](README.md)
 [![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng%20Việt-DA251D?style=for-the-badge)](README-vi.md)
 
-Web-based file manager and code editor — a rewrite / upgrade of [php-filemanager](https://github.com/cubiclesoft/php-filemanager) by [CubicleSoft](https://github.com/cubiclesoft).
+Web-based file manager and code editor
 
 ![Cope Manager — File Explorer](https://i.imgur.com/RlwVp8i.png)
 
@@ -23,12 +23,14 @@ Useful for managing files on PHP hosting, editing source code in the browser, or
 - **Recycle Bin** — soft delete (toggle during install).
 - **File extension modes** — All / Allow (whitelist) / Exclude (blacklist).
 - **Mobile-friendly** — usable on phones.
-- **Quick setup** — `install.php` wizard on any PHP host.
+- **MySQL Manager** — add servers, connect, browse databases/tables, run SQL (phpMyAdmin-style basics).
+- **Quick setup** — `copecute/install.php` wizard on any PHP host.
 - **Login integration** — `index_hook.php` for your own auth system.
 
 ## Requirements
 
 - PHP 5.6+ (PHP 7+ / 8+ recommended)
+- PHP **mysqli** extension (for MySQL Manager)
 - A writable storage directory for the web server
 
 ## Installation
@@ -39,18 +41,29 @@ Useful for managing files on PHP hosting, editing source code in the browser, or
 git clone https://github.com/copecute/cope-manager.git
 ```
 
-2. Open `install.php` in a browser and follow the wizard.
+2. Open `copecute/install.php` in a browser and follow the wizard.
 3. Set **File storage path** (the folder to manage) and optionally **File storage base URL**.
-4. Set a login password (or leave blank and use `index_hook.php` with your own login).
-5. After install, lock down the install directory if needed, then open the main page.
+4. Set a login password (required, min 8 characters).
+5. After install, open the site root `index.php`.
 
 If you do not need the tabbed editor / previewer, disable **Use Tabbed Editor/Viewer** during install — File Explorer will fill the whole UI.
 
-Configuration is stored in `config.php` (not committed; see `.gitignore`).
+Layout:
+
+```
+index.php                 # public entry
+copecute/
+  install.php             # installer
+  config.php              # created by install (protected)
+  app.php / bootstrap.php / security.php
+  js/  css/  php/  img/  thumb/  data/
+```
+
+Configuration is stored in `copecute/config.php` (not committed; see `.gitignore`).
 
 ## Embedding
 
-Create `index_hook.php` to validate the user session / permissions and adjust `$config` as needed.
+Create `copecute/index_hook.php` to validate the user session / permissions and adjust `$config` as needed.
 
 Optional hooks:
 

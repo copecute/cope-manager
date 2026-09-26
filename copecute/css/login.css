@@ -1,0 +1,232 @@
+:root {
+	--fm-ink: #1A2332;
+	--fm-muted: #5A6B7D;
+	--fm-line: #D5DEE8;
+	--fm-accent: #2F6FED;
+	--fm-accent-soft: #E8F0FE;
+	--fm-err: #B42318;
+	--fm-err-bg: #FEF3F2;
+	--fm-radius: 12px;
+}
+
+html, body.fm_login_body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: auto;
+	background:
+		radial-gradient(ellipse 70% 45% at 0% 0%, #C5D8F5 0%, transparent 55%),
+		radial-gradient(ellipse 55% 40% at 100% 100%, #D0E0F4 0%, transparent 50%),
+		linear-gradient(165deg, #F4F7FB 0%, #E8EEF4 100%);
+	color: var(--fm-ink);
+	font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body.fm_login_body #contentwrap.nomenu {
+	min-height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px 16px;
+	box-sizing: border-box;
+	overflow: auto;
+}
+
+.fm_login_shell {
+	width: min(400px, 100%);
+}
+
+.fm_login_brand {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	margin-bottom: 22px;
+	gap: 10px;
+}
+
+.fm_login_mark {
+	width: 52px;
+	height: 52px;
+	border-radius: 14px;
+	background: linear-gradient(145deg, #3D5A73, #2F6FED);
+	box-shadow: 0 8px 24px rgba(47, 111, 237, 0.32);
+	position: relative;
+}
+
+.fm_login_mark::before {
+	content: "";
+	position: absolute;
+	left: 14px;
+	top: 13px;
+	width: 24px;
+	height: 18px;
+	border: 2.5px solid #F4F8FC;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.fm_login_mark::after {
+	content: "";
+	position: absolute;
+	left: 18px;
+	top: 28px;
+	width: 16px;
+	height: 2.5px;
+	background: #F4F8FC;
+	border-radius: 1px;
+	box-shadow: 0 5px 0 #F4F8FC;
+}
+
+.fm_login_brand_name {
+	font-size: 1.45rem;
+	font-weight: 750;
+	letter-spacing: -0.03em;
+	line-height: 1.2;
+}
+
+.fm_login_brand_sub {
+	font-size: 0.88rem;
+	color: var(--fm-muted);
+	margin-top: -4px;
+}
+
+.fm_login_card {
+	background: #fff;
+	border: 1px solid var(--fm-line);
+	border-radius: var(--fm-radius);
+	box-shadow: 0 16px 48px rgba(26, 35, 50, 0.12);
+	padding: 26px 24px 28px;
+	box-sizing: border-box;
+}
+
+body.fm_login_body .proptitlewrap {
+	display: none;
+}
+
+body.fm_login_body .propdescwrap {
+	padding: 0 0 14px;
+}
+
+body.fm_login_body .propdesc {
+	max-width: none;
+	margin: 0;
+	color: var(--fm-muted);
+	font-size: 0.92rem;
+	text-align: center;
+}
+
+body.fm_login_body .propmainwrap {
+	padding: 0;
+}
+
+body.fm_login_body .propmain {
+	max-width: none;
+	margin: 0;
+}
+
+body.fm_login_body .propmessagewrap {
+	margin: 0 0 14px;
+	padding: 0;
+	border: 0;
+	box-shadow: none;
+}
+
+body.fm_login_body .propmessage {
+	max-width: none;
+	margin: 0;
+	padding: 10px 12px;
+	border-radius: 8px;
+	font-size: 0.88rem;
+	border: 1px solid transparent;
+}
+
+body.fm_login_body .propmessageerror {
+	background: var(--fm-err-bg);
+	border-color: #F3B4AE;
+	color: var(--fm-err);
+}
+
+body.fm_login_body .propmessagesuccess {
+	background: #ECFDF3;
+	border-color: #ABEFC6;
+	color: #067647;
+}
+
+body.fm_login_body .formitemtitle {
+	font-weight: 650;
+	font-size: 0.88rem;
+	color: #314255;
+	margin-bottom: 0.4em;
+}
+
+body.fm_login_body .formitemdata .textitemwrap > input.text {
+	box-sizing: border-box;
+	width: 100%;
+	font-size: 1rem;
+	padding: 0.7em 0.85em;
+	border: 1px solid var(--fm-line);
+	border-radius: 8px;
+	background: #FAFBFC;
+	font-family: inherit;
+	transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+body.fm_login_body .formitemdata .textitemwrap > input.text:focus {
+	border-color: var(--fm-accent);
+	box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.16);
+	background: #fff;
+	outline: none;
+}
+
+body.fm_login_body form.ff_form .formsubmit {
+	margin-top: 1.35em;
+}
+
+body.fm_login_body form.ff_form .formsubmit input {
+	width: 100%;
+	margin: 0;
+	padding: 0.75em 1em;
+	font-weight: 650;
+	font-size: 1rem;
+	font-family: inherit;
+	background: var(--fm-accent);
+	color: #fff;
+	border: 1px solid var(--fm-accent);
+	border-radius: 8px;
+	cursor: pointer;
+	box-shadow: 0 4px 14px rgba(47, 111, 237, 0.3);
+}
+
+body.fm_login_body form.ff_form .formsubmit input:hover {
+	background: #1F5AD6;
+}
+
+.fm_login_hint {
+	margin-top: 16px;
+	padding-top: 14px;
+	border-top: 1px solid #EEF2F6;
+	font-size: 0.78rem;
+	color: var(--fm-muted);
+	line-height: 1.45;
+	text-align: center;
+}
+
+.fm_login_footer {
+	margin-top: 18px;
+	text-align: center;
+	font-size: 0.75rem;
+	color: #8A97A8;
+	line-height: 1.45;
+	max-width: 360px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.fm_login_footer code {
+	font-size: 0.85em;
+	background: rgba(255,255,255,0.7);
+	padding: 1px 5px;
+	border-radius: 4px;
+	border: 1px solid #D5DEE8;
+}
