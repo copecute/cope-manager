@@ -27,6 +27,14 @@
 
 	CopeSecurity_Headers();
 
+	// Never cache the admin UI / login HTML (prevents stale session pages from bfcache).
+	if (!headers_sent())
+	{
+		header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+		header("Pragma: no-cache");
+		header("Expires: 0");
+	}
+
 	if (!is_file(COPE_CONFIG))
 	{
 		header("Location: " . CopeUrl_Install(), true, 302);
@@ -385,6 +393,8 @@
 <link rel="stylesheet" type="text/css" href="<?=htmlspecialchars(COPE_CSS_URL)?>/file-explorer/file-explorer.css?v=<?=@filemtime(COPE_CSS . "/file-explorer/file-explorer.css")?>">
 <link rel="stylesheet" type="text/css" href="<?=htmlspecialchars(COPE_CSS_URL)?>/file-manager.css?v=<?=@filemtime(COPE_CSS . "/file-manager.css")?>">
 <link rel="stylesheet" type="text/css" href="<?=htmlspecialchars(COPE_CSS_URL)?>/mysql-manager.css?v=<?=@filemtime(COPE_CSS . "/mysql-manager.css")?>">
+<link rel="stylesheet" type="text/css" href="<?=htmlspecialchars(COPE_CSS_URL)?>/flexforms/flex_forms.css?v=<?=@filemtime(COPE_CSS . "/flexforms/flex_forms.css")?>">
+<link rel="stylesheet" type="text/css" href="<?=htmlspecialchars(COPE_CSS_URL)?>/flexforms/flex_forms_dialog.css?v=<?=@filemtime(COPE_CSS . "/flexforms/flex_forms_dialog.css")?>">
 </head>
 <body>
 <div id="filemanager"></div>
@@ -397,7 +407,6 @@
 ?>
 <script type="text/javascript" src="<?=htmlspecialchars(COPE_JS_URL)?>/ace/ace.js?v=<?=@filemtime(COPE_JS . "/ace/ace.js")?>"></script>
 <script type="text/javascript" src="<?=htmlspecialchars(COPE_JS_URL)?>/flexforms/flex_forms_dialog.js?v=<?=@filemtime(COPE_JS . "/flexforms/flex_forms_dialog.js")?>"></script>
-<link rel="stylesheet" type="text/css" href="<?=htmlspecialchars(COPE_CSS_URL)?>/flexforms/flex_forms_dialog.css?v=<?=@filemtime(COPE_CSS . "/flexforms/flex_forms_dialog.css")?>">
 <?php
 	}
 ?>

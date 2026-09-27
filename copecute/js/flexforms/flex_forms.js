@@ -369,10 +369,18 @@
 			responsive: true,
 			formtables: true,
 			formwidths: true,
-			supporturl: (document.currentScript.src.lastIndexOf('/') > -1 ? document.currentScript.src.substring(0, document.currentScript.src.lastIndexOf('/')) : document.currentScript.src),
+			// JS lives under .../js/flexforms; CSS lives under .../css/flexforms.
+			supporturl: (document.currentScript && document.currentScript.src.lastIndexOf('/') > -1 ? document.currentScript.src.substring(0, document.currentScript.src.lastIndexOf('/')) : ''),
+			cssurl: '',
 
 			langmap: {}
 		};
+
+		if ($this.settings.supporturl)
+		{
+			$this.settings.cssurl = $this.settings.supporturl.replace(/\/js\//g, '/css/').replace(/\/js$/, '/css');
+		}
+		else  $this.settings.cssurl = $this.settings.supporturl;
 
 		// Multilingual translation.
 		$this.Translate = function(str) {
@@ -420,7 +428,8 @@
 		};
 
 		$this.OutputFormCSS = function() {
-			FlexForms.LoadCSS('formcss', $this.settings.supporturl + '/flex_forms.css');
+			var cssbase = ($this.settings.cssurl || $this.settings.supporturl);
+			FlexForms.LoadCSS('formcss', cssbase + '/flex_forms.css');
 		};
 
 		// Creates a message for insertion into the DOM.

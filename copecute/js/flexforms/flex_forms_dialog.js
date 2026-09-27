@@ -255,7 +255,8 @@
 		$this.UpdateSizes = function() {
 			elems.mainwrap.classList.remove('ff_dialogwrap_small');
 
-			if (elems.mainwrap.offsetWidth / elems.measureemsize.offsetWidth < 27)  elems.mainwrap.classList.add('ff_dialogwrap_small');
+			var em = elems.measureemsize.offsetWidth || 16;
+			if (elems.mainwrap.offsetWidth / em < 27)  elems.mainwrap.classList.add('ff_dialogwrap_small');
 
 			screenwidth = (document.documentElement.clientWidth || document.body.clientWidth || window.innerWidth);
 			screenheight = (document.documentElement.clientHeight || document.body.clientHeight || window.innerHeight);
@@ -263,12 +264,21 @@
 			if (!manualsize)  elems.mainwrap.style.height = null;
 
 			currdialogstyle = elems.mainwrap.currentStyle || window.getComputedStyle(elems.mainwrap);
-			dialogwidth = elems.mainwrap.offsetWidth + parseFloat(currdialogstyle.marginLeft) + parseFloat(currdialogstyle.marginRight);
-			dialogheight = elems.mainwrap.offsetHeight + parseFloat(currdialogstyle.marginTop) + parseFloat(currdialogstyle.marginBottom);
+			var ml = parseFloat(currdialogstyle.marginLeft);
+			var mr = parseFloat(currdialogstyle.marginRight);
+			var mt = parseFloat(currdialogstyle.marginTop);
+			var mb = parseFloat(currdialogstyle.marginBottom);
+			if (!isFinite(ml))  ml = 0;
+			if (!isFinite(mr))  mr = 0;
+			if (!isFinite(mt))  mt = 0;
+			if (!isFinite(mb))  mb = 0;
+
+			dialogwidth = elems.mainwrap.offsetWidth + ml + mr;
+			dialogheight = elems.mainwrap.offsetHeight + mt + mb;
 
 			if (!manualsize && dialogheight >= screenheight)
 			{
-				elems.mainwrap.style.height = (screenheight - parseFloat(currdialogstyle.marginTop) - parseFloat(currdialogstyle.marginBottom) - 2) + 'px';
+				elems.mainwrap.style.height = (screenheight - mt - mb - 2) + 'px';
 
 				dialogheight = screenheight;
 			}
@@ -276,13 +286,27 @@
 
 		// Snaps the dialog so it fits on the screen.
 		$this.SnapToScreen = function() {
-			var currleft = elems.mainwrap.offsetLeft - parseFloat(currdialogstyle.marginLeft);
-			var currtop = elems.mainwrap.offsetTop - parseFloat(currdialogstyle.marginTop);
+			var ml = parseFloat(currdialogstyle.marginLeft);
+			var mt = parseFloat(currdialogstyle.marginTop);
+			var mb = parseFloat(currdialogstyle.marginBottom);
+			if (!isFinite(ml))  ml = 0;
+			if (!isFinite(mt))  mt = 0;
+			if (!isFinite(mb))  mb = 0;
+
+			var currleft = elems.mainwrap.offsetLeft - ml;
+			var currtop = elems.mainwrap.offsetTop - mt;
 
 			elems.mainwrap.style.left = '0px';
 			elems.mainwrap.style.top = '0px';
 
 			$this.UpdateSizes();
+
+			ml = parseFloat(currdialogstyle.marginLeft);
+			mt = parseFloat(currdialogstyle.marginTop);
+			mb = parseFloat(currdialogstyle.marginBottom);
+			if (!isFinite(ml))  ml = 0;
+			if (!isFinite(mt))  mt = 0;
+			if (!isFinite(mb))  mb = 0;
 
 			if (dialogwidth >= screenwidth)  currleft = 0;
 			else
@@ -302,7 +326,7 @@
 
 			elems.mainwrap.style.left = currleft + 'px';
 			elems.mainwrap.style.top = currtop + 'px';
-			elems.mainwrap.style.height = (dialogheight - parseFloat(currdialogstyle.marginTop) - parseFloat(currdialogstyle.marginBottom)) + 'px';
+			elems.mainwrap.style.height = (dialogheight - mt - mb) + 'px';
 
 			DispatchEvent('position', elems.mainwrap);
 		};
@@ -313,6 +337,11 @@
 			else
 			{
 				$this.UpdateSizes();
+
+				var mt = parseFloat(currdialogstyle.marginTop);
+				var mb = parseFloat(currdialogstyle.marginBottom);
+				if (!isFinite(mt))  mt = 0;
+				if (!isFinite(mb))  mb = 0;
 
 				var left = (screenwidth / 2) - (dialogwidth / 2);
 				var top = (screenheight / 2) - (dialogheight / 2);
@@ -325,7 +354,7 @@
 
 				elems.mainwrap.style.left = left + 'px';
 				elems.mainwrap.style.top = top + 'px';
-				elems.mainwrap.style.height = (dialogheight - parseFloat(currdialogstyle.marginTop) - parseFloat(currdialogstyle.marginBottom)) + 'px';
+				elems.mainwrap.style.height = (dialogheight - mt - mb) + 'px';
 
 				DispatchEvent('position', elems.mainwrap);
 			}
@@ -348,6 +377,16 @@
 		var LoadedHandler = function() {
 			$this.CenterDialog();
 
+			// Re-center after layout settles (CSS from <head> may finish applying a tick later).
+			if (window.requestAnimationFrame)
+			{
+				window.requestAnimationFrame(function() {
+					$this.CenterDialog();
+					window.requestAnimationFrame($this.CenterDialog);
+				});
+			}
+			else  setTimeout($this.CenterDialog, 0);
+
 			elems.mainwrap.classList.add('ff_dialog_focused');
 
 			// Bypass the hasfocus checks in MainWrapFocusHandler.
@@ -361,7 +400,8 @@
 
 		window.FlexForms.addEventListener('done', LoadedHandler);
 
-		window.FlexForms.LoadCSS('formdialogcss', window.FlexForms.settings.supporturl + '/flex_forms_dialog.css');
+		var cssbase = (window.FlexForms.settings.cssurl || window.FlexForms.settings.supporturl);
+		window.FlexForms.LoadCSS('formdialogcss', cssbase + '/flex_forms_dialog.css');
 
 		// Manual move.
 		var moveanchorpos;

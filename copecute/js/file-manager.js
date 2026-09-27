@@ -381,11 +381,88 @@ f.subarray(0,c):f.slice(0,c)};E||(r.TextDecoder=x,r.TextEncoder=y)})(""+void 0==
 			}
 		};
 
+		// Clear client storage + fire server logout immediately (do not wait for redirect).
+		var ClearAuthState = function() {
+			try  { sessionStorage.clear(); } catch (ex) {}
+			try
+			{
+				var drop = [];
+				for (var i = 0; i < localStorage.length; i++)
+				{
+					var k = localStorage.key(i);
+					if (k && /^fm_|^cope_|^FileManager/i.test(k))  drop.push(k);
+				}
+				for (var j = 0; j < drop.length; j++)  localStorage.removeItem(drop[j]);
+			}
+			catch (ex2) {}
+
+			try
+			{
+				var params = { action: 'logout' };
+				if (typeof $this.settings.onxhrparams === 'function')  $this.settings.onxhrparams('logout', params);
+
+				var body = [];
+				for (var key in params)
+				{
+					if (params.hasOwnProperty(key))  body.push(encodeURIComponent(key) + '=' + encodeURIComponent(params[key]));
+				}
+				var payload = body.join('&');
+				var logoutUrl = window.location.href.split('#')[0].split('?')[0];
+
+				if (navigator.sendBeacon)
+				{
+					try
+					{
+						if (navigator.sendBeacon(logoutUrl, new Blob([payload], { type: 'application/x-www-form-urlencoded' })))  return;
+					}
+					catch (ex3) {}
+				}
+
+				if (window.fetch)
+				{
+					fetch(logoutUrl, {
+						method: 'POST',
+						credentials: 'same-origin',
+						cache: 'no-store',
+						keepalive: true,
+						headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+						body: payload
+					}).catch(function() {});
+					return;
+				}
+
+				// Last resort: sync XHR so logout finishes before the user navigates.
+				try
+				{
+					var xhr = new XMLHttpRequest();
+					xhr.open('POST', logoutUrl, true);
+					xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+					xhr.send(payload);
+				}
+				catch (ex4) {}
+			}
+			catch (ex5) {}
+		};
+
+		// Hard-navigate to login/install after auth was already cleared.
+		var ForceReauthRedirect = function(url) {
+			var target = String(url || window.location.href.split('#')[0].split('?')[0]);
+			ClearAuthState();
+
+			var sep = (target.indexOf('?') >= 0) ? '&' : '?';
+			var next = target + sep + 'reauth=' + Date.now();
+			try  { window.location.replace(next); }
+			catch (ex)  { window.location.href = next; }
+		};
+
 		var ShowSessionExpiredDialog = function(reason, raw) {
 			if (sessionExpiredShown || destroyinprogress)  return;
 			sessionExpiredShown = true;
 
-			try  { $this.DebugLog('warn', ['[Session] ' + (reason || 'Session expired')]); } catch (ex) {}
+			// Clear session immediately when the popup appears — do not wait for click/reload.
+			ClearAuthState();
+
+			try  { $this.DebugLog('warn', ['[Session] ' + (reason || 'Session expired') + ' — auth cleared']); } catch (ex) {}
 
 			var isInstall = LooksLikeInstallPage(raw);
 			var redirectUrl = GetAuthRedirectUrl(raw);
@@ -395,7 +472,7 @@ f.subarray(0,c):f.slice(0,c)};E||(r.TextDecoder=x,r.TextEncoder=y)})(""+void 0==
 				: $this.Translate('Your login session has expired or is no longer valid. Sign in again to continue.');
 			var btnLabel = isInstall ? $this.Translate('Open installer') : $this.Translate('Sign in again');
 
-			var go = function() { window.location.href = redirectUrl; };
+			var go = function() { ForceReauthRedirect(redirectUrl); };
 
 			if (typeof showModalDialogFn === 'function')
 			{
@@ -412,7 +489,6 @@ f.subarray(0,c):f.slice(0,c)};E||(r.TextDecoder=x,r.TextEncoder=y)})(""+void 0==
 			}
 			else
 			{
-				// Modal helper not ready yet — brief notice then redirect.
 				try  { window.alert(title + '\n\n' + msg); } catch (ex2) {}
 				go();
 			}
@@ -2236,13 +2312,7 @@ console.log(e);
 		$this.Logout = function() {
 			$this.LogActivity('logout');
 			SendAccountAction('logout', {}, function(data) {
-				if (!data.success)
-				{
-					alert(data.error || $this.Translate('Logout failed.'));
-					return;
-				}
-
-				window.location.reload();
+				ForceReauthRedirect(window.location.href.split('#')[0].split('?')[0]);
 			});
 		};
 

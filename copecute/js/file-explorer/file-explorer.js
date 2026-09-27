@@ -356,10 +356,14 @@
 						{
 							var href = window.location.href.split('#')[0].split('?')[0];
 							var dir = href.replace(/\/[^\/]*$/, '/');
+							var next;
 							if (String(raw).indexOf('fm_install') !== -1 || /install\.php/i.test(String(raw)) || /Cope Manager Setup/i.test(String(raw)))
-								window.location.href = dir + 'copecute/install.php';
+								next = dir + 'copecute/install.php';
 							else
-								window.location.href = href;
+								next = href;
+							try  { sessionStorage.clear(); } catch (ex3) {}
+							var sep = (next.indexOf('?') >= 0) ? '&' : '?';
+							window.location.replace(next + sep + 'reauth=' + Date.now());
 						}
 						catch (ex2)  { window.location.reload(); }
 						return;
