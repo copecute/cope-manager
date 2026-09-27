@@ -88,34 +88,6 @@
 			return ($path === $manager || strpos($path . "/", $manager . "/") === 0);
 		}
 
-		// Executable / server-script extensions that must never be uploaded or created via the UI.
-		public static function IsDangerousFileName($file)
-		{
-			$file = str_replace("\\", "/", (string)$file);
-			$base = strtolower(basename($file));
-			if ($base === ".htaccess" || $base === ".htpasswd" || $base === "web.config")  return true;
-
-			$dangerous = array(
-				"php" => true, "phtml" => true, "phar" => true, "php3" => true, "php4" => true, "php5" => true,
-				"php7" => true, "php8" => true, "pht" => true, "phps" => true, "cgi" => true, "pl" => true,
-				"asp" => true, "aspx" => true, "jsp" => true, "jspx" => true, "shtml" => true, "shtm" => true,
-				"py" => true, "rb" => true, "exe" => true, "bat" => true, "cmd" => true, "com" => true,
-				"msi" => true, "scr" => true, "vbs" => true, "ps1" => true
-			);
-
-			$parts = explode(".", $base);
-			if (count($parts) < 2)  return false;
-
-			// Double-extension shells: file.php.jpg, file.phtml.png, etc.
-			for ($i = 1; $i < count($parts); $i++)
-			{
-				$ext = $parts[$i];
-				if ($ext !== "" && isset($dangerous[$ext]))  return true;
-			}
-
-			return false;
-		}
-
 		public static function GetRequestVar($name)
 		{
 			if (isset($_POST[$name]))  return $_POST[$name];
@@ -230,52 +202,18 @@
 
 		// Builds the allowed/excluded extension config used by HasAllowedExt().
 		// Modes: all (allow everything), allow (whitelist), exclude (denylist).
+		// NOTE: Extension lists are UI/filter preferences only — they must NOT block
+		// extract/copy/upload/rename. Attack prevention is path sanitization, zip-slip,
+		// auth, and hide_manager — not file extensions (admins need .php etc.).
 		public static function GetAllowedExtsConfig(&$options)
 		{
-			if (is_bool($options["allowed_exts"]))  return $options["allowed_exts"];
-
-			if (is_array($options["allowed_exts"]) && isset($options["allowed_exts"]["__mode"]))  return $options["allowed_exts"];
-
-			$mode = (isset($options["file_exts_mode"]) ? $options["file_exts_mode"] : "allow");
-			if ($mode === "all")  return true;
-
-			if (is_string($options["allowed_exts"]))  $map = self::ExtractAllowedExtensions($options["allowed_exts"]);
-			else if (is_array($options["allowed_exts"]))  $map = $options["allowed_exts"];
-			else  return true;
-
-			if ($mode === "allow" && !count($map))  return true;
-
-			if ($mode === "exclude")  return array("__mode" => "exclude", "__exts" => $map);
-
-			return $map;
+			return true;
 		}
 
 		public static function HasAllowedExt(&$allowedexts, $allowempty, $file)
 		{
-			if ($allowedexts === false)  return false;
-			if ($allowedexts === true)  return true;
-
-			$mode = "allow";
-			$map = $allowedexts;
-			if (is_array($allowedexts) && isset($allowedexts["__mode"]))
-			{
-				$mode = $allowedexts["__mode"];
-				$map = (isset($allowedexts["__exts"]) && is_array($allowedexts["__exts"]) ? $allowedexts["__exts"] : array());
-			}
-
-			$pos = strrpos($file, ".");
-			if ($pos === false)
-			{
-				if (!$allowempty)  return false;
-
-				return true;
-			}
-
-			$ext = strtolower(substr($file, $pos + 1));
-
-			if ($mode === "exclude")  return !isset($map[$ext]);
-
-			return isset($map[$ext]);
+			// Always allow — see GetAllowedExtsConfig(). Kept for call-site compatibility.
+			return true;
 		}
 
 		public static function GetPathDepth($path, $basedir)
@@ -776,7 +714,6 @@
 			else if ($newname === false)  $result = array("success" => false, "error" => self::FETranslate("Missing new name.  Expected string."), "errorcode" => "missing_newname");
 			else if (self::IsRecycleBin($path, $options))  $result = array("success" => false, "error" => self::FETranslate("Items in the recycling bin cannot be renamed."), "errorcode" => "access_denied");
 			else if (self::IsProtectedManagerPath($path . "/" . $file, $options) || self::IsProtectedManagerPath($path . "/" . $newname, $options))  $result = array("success" => false, "error" => self::FETranslate("The Cope Manager folder is protected."), "errorcode" => "access_denied");
-			else if (!is_dir($path . "/" . $file) && self::IsDangerousFileName($newname))  $result = array("success" => false, "error" => self::FETranslate("That file extension is not allowed for security reasons."), "errorcode" => "invalid_newname");
 			else
 			{
 				$depth = self::GetPathDepth($path, $options["base_dir"]);
@@ -1155,7 +1092,6 @@
 				$allowedexts = self::GetAllowedExtsConfig($options);
 
 				if ($depth < $options["protect_depth"])  $result = array("success" => false, "error" => self::FETranslate("This folder cannot be modified."), "errorcode" => "access_denied");
-				else if (self::IsDangerousFileName($name))  $result = array("success" => false, "error" => self::FETranslate("That file extension is not allowed for security reasons."), "errorcode" => "invalid_file_ext");
 				else if (!self::HasAllowedExt($allowedexts, $options["allow_empty_ext"], $name))  $result = array("success" => false, "error" => self::FETranslate("The file extension is not allowed."), "errorcode" => "invalid_file_ext");
 				else if ($options["action"] === $options["requestprefix"] . "upload_init")
 				{
@@ -1973,12 +1909,8 @@
 				if ($part === false)  return false;
 				if ($part[0] === "." && !$allowdotfolders)  return false;
 
-				// Last segment is the filename — enforce allowed extensions + block dangerous scripts.
-				if ($x === $y - 1)
-				{
-					if (self::IsDangerousFileName($part))  return false;
-					if (!self::HasAllowedExt($allowedexts, $allowempty, $part))  return false;
-				}
+				// Last segment is the filename — enforce allowed extensions from settings.
+				if ($x === $y - 1 && !self::HasAllowedExt($allowedexts, $allowempty, $part))  return false;
 
 				$clean[] = $part;
 			}
